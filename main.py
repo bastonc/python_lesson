@@ -1,6 +1,7 @@
 import functools
 import requests
-import sys
+import os
+import psutil
 from collections import OrderedDict
 
 
@@ -11,15 +12,16 @@ def cache(max_limit=64):
             cache_key = (args, tuple(kwargs.items()))
             if cache_key in deco._cache:
                 deco._cache[cache_key]['frequency'] += 1
-                return deco._cache[cache_key]['content']
-            result = f(*args, **kwargs)
-            # видаляємо якшо досягли ліміта
-            if len(deco._cache) >= max_limit:
-                # search elements in cache with minimal frequency using
-                found_key = [key for key in deco._cache.keys() if deco._cache.get(key) == min(
-                    deco._cache.values(), key=lambda value_dict: value_dict["frequency"])][0]
-                deco._cache.pop(found_key)
-            deco._cache[cache_key] = {'content': result, 'frequency': 1}
+                result = deco._cache[cache_key]['content']
+            else:
+                result = f(*args, **kwargs)
+                # видаляємо якшо досягли ліміта
+                if len(deco._cache) >= max_limit:
+                    # search elements in cache with minimal frequency using
+                    found_key = [key for key in deco._cache.keys() if deco._cache.get(key) == min(
+                        deco._cache.values(), key=lambda value_dict: value_dict["frequency"])][0]
+                    deco._cache.pop(found_key)
+                deco._cache[cache_key] = {'content': result, 'frequency': 1}
             print(f'Object cache: {deco._cache}')
             # output for human - URLs in cash
             print('_' * 10, 'In cache', '_' * 10)
@@ -30,14 +32,18 @@ def cache(max_limit=64):
 
         deco._cache = OrderedDict()
         return deco
+
     return internal
 
 
 def mem_quantity(f):
     @functools.wraps(f)
     def internal(*args, **kwargs):
+        pid = psutil.Process(os.getpid())
+        memory_before = pid.memory_full_info().rss
         result = f(*args, **kwargs)
-        print(f'Memory quantity for object: {f} bytes: {sys.getsizeof(result)}')
+        memory_after = pid.memory_full_info().rss
+        print(f'Memory for function "{f.__name__}" with argument {args[0]} - kB:', memory_after / 1024 - memory_before / 1024)
         return result
     return internal
 
@@ -53,21 +59,23 @@ def fetch_url(url, first_n=100):
         return f'Error connection'
 
 
+
 if __name__ == "__main__":
     # fetch_url('https://google.com', first_n=100)
     print(fetch_url('https://google.com', first_n=100))
-    print(fetch_url('https://google.com', first_n=100))
+    # print(fetch_url('https://google.com', first_n=100))
     print(fetch_url('http://linuxlog.su', first_n=100))
     print(fetch_url('http://linuxlog.su', first_n=100))
-    print(fetch_url('https://google.com', first_n=100))
-    # print(fetch_url('http://linuxlog.su', first_n=100))
+    print(fetch_url('http://linuxlog.su', first_n=100))
     # print(fetch_url('https://google.com', first_n=100))
-    # print(fetch_url('http://linuxlog.su', first_n=100))
-    # print(fetch_url('https://google.com', first_n=100))
-    # print(fetch_url('https://google.com.ua', first_n=100))
-    # print(fetch_url('https://google.com.ua', first_n=100))
-    # print(fetch_url('https://google.com.ua', first_n=100))
-    print(fetch_url('https://ithillel.ua', first_n=100))
-    print(fetch_url('https://ithillel.ua', first_n=100))
+    # # print(fetch_url('http://linuxlog.su', first_n=100))
+    # # print(fetch_url('https://google.com', first_n=100))
+    # # print(fetch_url('http://linuxlog.su', first_n=100))
+    # # print(fetch_url('https://google.com', first_n=100))
+    print(fetch_url('https://google.com.ua', first_n=100))
+    # # print(fetch_url('https://google.com.ua', first_n=100))
+    # # print(fetch_url('https://google.com.ua', first_n=100))
+    # print(fetch_url('https://ithillel.ua', first_n=100))
+    # print(fetch_url('https://ithillel.ua', first_n=100))
     # print(fetch_url('https://google.com.ua', first_n=100))
     # #print(fetch_url('https://google.com', first_n=None))
