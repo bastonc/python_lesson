@@ -1,4 +1,6 @@
 import functools
+import tracemalloc
+
 import requests
 import os
 import psutil
@@ -39,11 +41,11 @@ def cache(max_limit=64):
 def mem_quantity(f):
     @functools.wraps(f)
     def internal(*args, **kwargs):
-        pid = psutil.Process(os.getpid())
-        memory_before = pid.memory_full_info().rss
+        tracemalloc.start()
         result = f(*args, **kwargs)
-        memory_after = pid.memory_full_info().rss
-        print(f'Memory for function "{f.__name__}" with argument {args[0]} - kB:', memory_after / 1024 - memory_before / 1024)
+        memory = tracemalloc.get_traced_memory()
+        tracemalloc.reset_peak()
+        print(f'Recent memory: {round(memory[1] / 1024, 2)} KiB')
         return result
     return internal
 
