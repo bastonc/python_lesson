@@ -1,9 +1,6 @@
 import functools
 import tracemalloc
-
 import requests
-import os
-import psutil
 from collections import OrderedDict
 
 
