@@ -21,7 +21,7 @@ def cache(max_limit=64):
                         deco._cache.values(), key=lambda value_dict: value_dict["frequency"])][0]
                     deco._cache.pop(found_key)
                 deco._cache[cache_key] = {'content': result, 'frequency': 1}
-            print(f'Object cache: {deco._cache}')
+            print(f'Object  cache: {deco._cache}')
             # output for human - URLs in cash
             print('_' * 10, 'In cache', '_' * 10)
             for key in deco._cache.keys():
