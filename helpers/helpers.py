@@ -15,11 +15,7 @@ def gen_pass(long_pass: int) -> str:
 
 def read_csv():
 	reader = pd.read_csv('hw.csv')
-	sum_height = 0
-	sum_weight = 0
-	for line in range(len(reader)):
-		sum_height += decimal.Decimal(reader[' Height(Inches)'][line])
-		sum_weight += decimal.Decimal(reader[' Weight(Pounds)'][line])
-	return {'avg_weight': round(sum_weight / len(reader), 2),
-	        'avg_height': round(sum_height / len(reader), 2),
+	avg = reader.mean()
+	return {'avg_weight': round(avg[' Weight(Pounds)'], 2),
+	        'avg_height': round(avg[' Height(Inches)'], 2),
 	        'len': len(reader)}
