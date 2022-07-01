@@ -16,6 +16,4 @@ def gen_pass(long_pass: int) -> str:
 def read_csv():
 	reader = pd.read_csv('hw.csv')
 	avg = reader.mean()
-	return {'avg_weight': round(avg[' Weight(Pounds)'], 2),
-	        'avg_height': round(avg[' Height(Inches)'], 2),
-	        'len': len(reader)}
+	return {'avg_weight': round(avg[' Weight(Pounds)'], 2), 'avg_height': round(avg[' Height(Inches)'], 2), 'len': len(reader)}
