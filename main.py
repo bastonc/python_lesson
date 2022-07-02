@@ -14,13 +14,13 @@ def index():
 def password():
 	len_pass = random.randint(10, 20)
 	passwrd = gen_pass(len_pass)  # use clean function for generated password
-	return f'<p>Password long: {len_pass}</p><p>Password: {passwrd}</p>'
+	return f'<p>Password long: {len_pass}</p>Password: {passwrd}'
 
 
 @app.route('/csv')
 def average_csv():
 	avg_data = read_csv()
-	return f"<p>All records in files: {avg_data['len']}</p><p> Average Height(Inches): {avg_data['avg_height']}</p><p> Average Weight(Pounds): {avg_data['avg_weight']}</p>"
+	return f"<p>All records in files: {avg_data['len']}</p><p>Average Height(Inches): {avg_data['avg_height']}</p><p>Average Weight(Pounds): {avg_data['avg_weight']}</p>"
 
 
 if __name__ == '__main__':
