@@ -35,7 +35,7 @@ def index():
 	"""
 	return '<p> /pass - generated password</p><p>/csv - work from CSV file</p>\
 	<p>/students?amount=3&country=EN&file=Student - list students (store to csv)</p>\
-	<p>/btc?currency=USD&change=100 - course and exchange BTC</p>'
+	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p>'
 
 
 @app.route('/pass')
