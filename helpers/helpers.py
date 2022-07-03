@@ -78,7 +78,12 @@ def generate_person(amount: int, country_code: str) -> object:
 			 'birthday': fake.date_between(start_date="-40y", end_date="-18y")} for _ in range(amount)]
 
 
-def get_bitcoin_value(currency: str):
+def get_bitcoin_value(currency: str) -> dict:
+	"""
+	Get BTC rate and add symbol of currency
+	:param currency: string - currency code (USD, EUR etc.)
+	:return: dict or False
+	"""
 	bitcoin_rate_list = requests.get('https://bitpay.com/api/rates')
 	if bitcoin_rate_list.status_code != 200:
 		return False
@@ -94,6 +99,11 @@ def get_bitcoin_value(currency: str):
 
 
 def get_currency_symbol(curr: str) -> str:
+	"""
+	Get symbol of currency
+	:param curr: string - currency code
+	:return: string - symbol of currency
+	"""
 	headers = {'X-Accept-Version': '2.0.0', 'Content-type': 'application/json'}
 	symbol_list = requests.get(url='https://bitpay.com/currencies', headers=headers)
 	if symbol_list.status_code != 200:
@@ -102,5 +112,11 @@ def get_currency_symbol(curr: str) -> str:
 
 
 def buy_btc(rate_dict: dict, summ: int):
+	"""
+	Calculate exchange currency to BTC
+	:param rate_dict: dictionary with rate
+	:param summ: how money exchange in user currency
+	:return: float
+	"""
 	exchange = summ / rate_dict['rate']
 	return round(exchange, 4)

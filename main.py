@@ -94,6 +94,13 @@ def generate_students(amount: int, country: str, file: str):
 	location='query'
 )
 def bitcoin_process(currency: str, change: int):
+	"""
+	Entry point for /bitcoin_rate with parameters
+	(Get bitcoin rate and exchange calculation user currency to BTC)
+	:param currency: currency code (ex. USD, EUR)
+	:param change: integer how money exchange
+	:return: string
+	"""
 	bitcoin_dict = get_bitcoin_value(currency)
 	if not bitcoin_dict:
 		return "Error connection to https://bitpay.com or incorrect currency code"
