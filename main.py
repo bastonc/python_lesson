@@ -1,7 +1,7 @@
 import random
 
 
-from helpers.helpers import gen_pass, read_csv, generate_person, store_to_csv, object_to_str
+from helpers.helpers import gen_pass, read_csv, generate_person, store_to_csv, object_to_str, get_bitcoin_value, buy_btc
 
 from http import HTTPStatus
 
@@ -66,11 +66,11 @@ def average_csv():
 	{
 		'amount': fields.Int(missing=1, validate=[validate.Range(min=1, max=1000)]),
 		'country': fields.Str(missing='UK', validate=[validate.Length(2)]),
-		'file': fields.String(required=True, validate=[validate.Length(max=12), validate.Regexp('^\w+$')])
+		'file': fields.Str(required=True, validate=[validate.Length(max=12), validate.Regexp('^\w+$')])
 	},
 	location='query'
 )
-def generate_students(amount, country, file):
+def generate_students(amount: int, country: str, file: str):
 	"""
 	Entry point for /students with parameters
 	(Adding functionality generating students, save data to file and  output on client by formatted HTML string)
@@ -85,5 +85,24 @@ def generate_students(amount, country, file):
 	return outstring
 
 
+@app.route('/bitcoin_rate')
+@use_kwargs(
+	{
+		'currency': fields.Str(missing='USD', validate=[validate.Length(max=3)]),
+		'change': fields.Int(missing=None)
+	},
+	location='query'
+)
+def bitcoin_process(currency: str, change: int):
+	bitcoin_dict = get_bitcoin_value(currency)
+	if not bitcoin_dict:
+		return "Error connection to https://bitpay.com or incorrect currency code"
+	if change:
+		exchange_finaly_sum = buy_btc(rate_dict=bitcoin_dict, summ=change)
+	return f'<p>Exchange rate:<br> 1 BTC = {bitcoin_dict["rate"]} {bitcoin_dict["symbol"]}  [{currency}].</p>\
+	<p>{str(f"Exchange: {change} {currency} = {exchange_finaly_sum} BTC") if change else str("For exchange use parameter change=100") }</p>'
+
+
 if __name__ == '__main__':
-	app.run(host="127.0.0.1", port=8080, debug=True)
+
+	app.run(host="127.0.0.1", port=5000, debug=True)

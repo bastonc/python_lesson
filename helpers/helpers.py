@@ -1,7 +1,8 @@
 import csv
 import random
 import string
-
+import requests
+import json
 import pandas as pd
 
 from faker import Faker
@@ -77,13 +78,29 @@ def generate_person(amount: int, country_code: str) -> object:
 			 'birthday': fake.date_between(start_date="-40y", end_date="-18y")} for _ in range(amount)]
 
 
-def get_bitcoin_value():
-	# https://bitpay.com/api/rates
-	# /bitcoin_rate?currency=UAH
-	# input parameter currency code
-	# default is USD
-	# return value currency of bitcoin
-	# * https://bitpay.com/api/
-	# * return symbol of input currency code
-	# * add one more input parameter count and multiply by currency (int)
-	pass
+def get_bitcoin_value(currency: str):
+	bitcoin_rate_list = requests.get('https://bitpay.com/api/rates')
+	if bitcoin_rate_list.status_code != 200:
+		return False
+	rate_data = [curr_dict for curr_dict in bitcoin_rate_list.json() if curr_dict['code'] == currency]
+	# if incorrect currency code (from user) - return False
+	if not rate_data:
+		return False
+	symbol = get_currency_symbol(currency)
+	rate_data[0]['symbol'] = symbol
+	return rate_data[0]
+
+
+
+
+def get_currency_symbol(curr: str) -> str:
+	headers = {'X-Accept-Version': '2.0.0', 'Content-type': 'application/json'}
+	symbol_list = requests.get(url='https://bitpay.com/currencies', headers=headers)
+	if symbol_list.status_code != 200:
+		return ''
+	return str([symbol_dict['symbol'] for symbol_dict in symbol_list.json()['data'] if symbol_dict['code'] == curr][0])
+
+
+def buy_btc(rate_dict: dict, summ: int):
+	exchange = summ / rate_dict['rate']
+	return round(exchange, 4)
