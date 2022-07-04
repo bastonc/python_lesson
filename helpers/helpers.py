@@ -7,6 +7,7 @@ import pandas as pd
 
 from faker import Faker
 from http import HTTPStatus
+from flask import Response
 
 from python_lesson.const import const
 
@@ -80,16 +81,24 @@ def persons_generator(amount: int, country_code: str) -> object:
 def get_bitcoin_value(currency: str) -> dict | bool:
 	"""
 	Get BTC rate and add symbol of currency
+	----------------
+	format answer API:
+	Error currency - {"error": "\"BLAH-BLAH\" is not a valid currency."}
+	Correct answer - {"data":{"code":"USD","name":"US Dollar","rate":19822.26}}
+	----------------
 	:param currency: string - currency code (USD, EUR etc.)
 	:return: dict or False
 	"""
-	bitcoin_rate_list = requests.get(const.BTC_RATE_API)
-	if bitcoin_rate_list.status_code != HTTPStatus.OK:
+	headers = {'X-Accept-Version': '2.0.0', 'Content-type': 'application/json'}
+	bitcoin_rate_answer = requests.get(const.API_BTC_RATE+currency.lower(), headers=headers)
+	if bitcoin_rate_answer.status_code != HTTPStatus.OK:
 		return False
-	btc_rate_data = [currency_dict for currency_dict in bitcoin_rate_list.json() if currency_dict['code'] == currency]
+	if const.API_ERROR_KEY in bitcoin_rate_answer.json():
+		return bitcoin_rate_answer.json()
+	bitcoin_rate_dict = bitcoin_rate_answer.json()[const.API_COMPLETE_KEY]
 	symbol = get_currency_symbol(currency)
-	btc_rate_data[0]['symbol'] = symbol if symbol is not None else ''
-	return btc_rate_data[0]
+	bitcoin_rate_dict['symbol'] = symbol if symbol is not None else ''
+	return bitcoin_rate_dict
 
 
 def get_currency_symbol(curr: str) -> object | str:
@@ -99,7 +108,7 @@ def get_currency_symbol(curr: str) -> object | str:
 	:return: string - symbol of currency
 	"""
 	headers = {'X-Accept-Version': '2.0.0', 'Content-type': 'application/json'}
-	symbols_list = requests.get(url=const.BTC_SYMBOL_API, headers=headers)
+	symbols_list = requests.get(url=const.API_BTC_SYMBOL, headers=headers)
 	# If we can't get symbol - return empty string (noncritical data)
 	if symbols_list.status_code != HTTPStatus.OK:
 		return ''

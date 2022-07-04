@@ -92,8 +92,7 @@ def generate_students(amount: int, country: str, file: str):
 @app.route('/bitcoin_rate')
 @use_kwargs(
 	{
-		'currency': fields.Str(missing='USD', validate=[validate.Length(max=4),
-														validate.OneOf(const.CURRENCY_CODES)]),
+		'currency': fields.Str(missing='USD', validate=[validate.Length(max=4)]),
 		'change': fields.Int(missing=None)
 	},
 	location='query'
@@ -108,7 +107,9 @@ def bitcoin_exchange(currency: str, change: int):
 	"""
 	bitcoin_rate_dict = get_bitcoin_value(currency)
 	if not bitcoin_rate_dict:
-		return f"Error connection to {const.BTC_RATE_API} or incorrect currency code"
+		return f"Error connection to {const.BTC_RATE_API}"
+	elif 'error' in bitcoin_rate_dict:
+		return f"Error: {bitcoin_rate_dict['error']}"
 	if change:
 		exchange_finally_sum = buy_btc(rate_dict=bitcoin_rate_dict, summ=change)
 	return f'<p>Exchange rate:<br> 1 BTC = {bitcoin_rate_dict["symbol"]}{bitcoin_rate_dict["rate"]}  [{currency}]</p>\
