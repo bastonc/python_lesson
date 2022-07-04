@@ -1,16 +1,17 @@
 import random
 
-
-from helpers.helpers import gen_pass, read_csv, generate_person, store_to_csv, object_to_str, get_bitcoin_value, buy_btc
-
 from http import HTTPStatus
 
 from webargs import fields, validate
 from webargs.flaskparser import use_kwargs
 from flask import Flask, request, jsonify
 
+from helpers.helpers import password_generator, get_statistic_from_csv, persons_generator, object_to_csv, object_to_str, \
+	get_bitcoin_value, buy_btc
+from const import const
 
 app = Flask(__name__)
+
 
 @app.errorhandler(HTTPStatus.UNPROCESSABLE_ENTITY)
 @app.errorhandler(HTTPStatus.BAD_REQUEST)
@@ -27,38 +28,41 @@ def error_handler(error):
 	else:
 		return jsonify({'errors': messages}, error.code)
 
+
 @app.route('/')
-def index():
+def index_page() -> str:
 	"""
-	Index function
+	Entry point for route /
+	(Index page)
 	:return:
 	"""
-	return '<p> /pass - generated password</p><p>/csv - work from CSV file</p>\
+	return '<p> /password - generated password</p><p>/statistic - work from CSV file</p>\
 	<p>/students?amount=3&country=EN&file=Student - list students (store to csv)</p>\
 	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p>'
 
 
-@app.route('/pass')
-def password():
+@app.route('/password')
+def generate_password() -> str:
 	"""
 	Entry point for route /pass
 	(Generating password)
 	:return: string
 	"""
-	len_pass = random.randint(10, 20)
-	passwrd = gen_pass(len_pass)  # use clean function for generated password
-	return f'<p>Password long: {len_pass}</p>Password: {passwrd}'
+	len_password = random.randint(10, 20)
+	password = password_generator(len_password)  # use clean function for generated password
+	return f'<p>Password long: {len_password}</p>Password: {password}'
 
 
-@app.route('/csv')
-def average_csv():
+@app.route('/statistic')
+def average_statistic():
 	"""
-	Entry point for route /csv
+	Entry point for route /statistic
 	(Reading from csv and calculating average)
 	:return: string
 	"""
-	avg_data = read_csv()
-	return f"<p>All records in files: {avg_data['len']}</p><p>Average Height(Inches): {avg_data['avg_height']}</p><p>Average Weight(Pounds): {avg_data['avg_weight']}</p>"
+	statistic = get_statistic_from_csv(const.CSV_NAME)
+	return f"<p>All records in files: {statistic['len']}</p><p>Average Height(Inches): {statistic['avg_height']}</p>\
+	<p>Average Weight(Pounds): {statistic['avg_weight']}</p>"
 
 
 @app.route('/students')
@@ -79,10 +83,10 @@ def generate_students(amount: int, country: str, file: str):
 	:param file:
 	:return:
 	"""
-	students = generate_person(amount=amount, country_code=country)
-	store_to_csv(students, file)
-	outstring = object_to_str(students)
-	return outstring
+	students = persons_generator(amount=amount, country_code=country)
+	object_to_csv(students, file)
+	out_string = object_to_str(students)
+	return out_string
 
 
 @app.route('/bitcoin_rate')
@@ -93,7 +97,7 @@ def generate_students(amount: int, country: str, file: str):
 	},
 	location='query'
 )
-def bitcoin_process(currency: str, change: int):
+def bitcoin_exchange(currency: str, change: int):
 	"""
 	Entry point for /bitcoin_rate with parameters
 	(Get bitcoin rate and exchange calculation user currency to BTC)
@@ -101,15 +105,14 @@ def bitcoin_process(currency: str, change: int):
 	:param change: integer how money exchange
 	:return: string
 	"""
-	bitcoin_dict = get_bitcoin_value(currency)
-	if not bitcoin_dict:
-		return "Error connection to https://bitpay.com or incorrect currency code"
+	bitcoin_rate_dict = get_bitcoin_value(currency)
+	if not bitcoin_rate_dict:
+		return f"Error connection to {const.BTC_RATE_API} or incorrect currency code"
 	if change:
-		exchange_finaly_sum = buy_btc(rate_dict=bitcoin_dict, summ=change)
-	return f'<p>Exchange rate:<br> 1 BTC = {bitcoin_dict["rate"]} {bitcoin_dict["symbol"]}  [{currency}].</p>\
-	<p>{str(f"Exchange: {change} {currency} = {exchange_finaly_sum} BTC") if change else str("For exchange use parameter change=100") }</p>'
+		exchange_finally_sum = buy_btc(rate_dict=bitcoin_rate_dict, summ=change)
+	return f'<p>Exchange rate:<br> 1 BTC = {bitcoin_rate_dict["symbol"]}{bitcoin_rate_dict["rate"]}  [{currency}].</p>\
+	<p>{str(f"Exchange: {change} {currency} = {exchange_finally_sum} BTC") if change else str("For exchange use parameter change=100")}</p>'
 
 
 if __name__ == '__main__':
-
 	app.run(host="127.0.0.1", port=5000, debug=True)
