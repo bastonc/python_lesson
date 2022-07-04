@@ -8,7 +8,7 @@ import pandas as pd
 from faker import Faker
 from http import HTTPStatus
 
-from const import const
+from python_lesson.const import const
 
 def object_to_str(students_object: list) -> str:
 	"""
@@ -87,15 +87,12 @@ def get_bitcoin_value(currency: str) -> dict | bool:
 	if bitcoin_rate_list.status_code != HTTPStatus.OK:
 		return False
 	btc_rate_data = [currency_dict for currency_dict in bitcoin_rate_list.json() if currency_dict['code'] == currency]
-	# if incorrect currency code (from user) - return False
-	if not btc_rate_data:
-		return False
 	symbol = get_currency_symbol(currency)
-	btc_rate_data[0]['symbol'] = symbol
+	btc_rate_data[0]['symbol'] = symbol if symbol is not None else ''
 	return btc_rate_data[0]
 
 
-def get_currency_symbol(curr: str) -> str:
+def get_currency_symbol(curr: str) -> object | str:
 	"""
 	Get symbol of currency
 	:param curr: string - currency code
@@ -106,7 +103,7 @@ def get_currency_symbol(curr: str) -> str:
 	# If we can't get symbol - return empty string (noncritical data)
 	if symbols_list.status_code != HTTPStatus.OK:
 		return ''
-	return str([symbol_dict['symbol'] for symbol_dict in symbols_list.json()['data'] if symbol_dict['code'] == curr][0])
+	return [symbol_dict['symbol'] for symbol_dict in symbols_list.json()['data'] if symbol_dict['code'] == curr][0]
 
 
 def buy_btc(rate_dict: dict, summ: int):
