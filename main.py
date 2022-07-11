@@ -7,8 +7,10 @@ from webargs.flaskparser import use_kwargs
 from flask import Flask, request, jsonify
 
 from helpers.helpers import password_generator, get_statistic_from_csv, persons_generator, object_to_csv, object_to_str, \
-	get_bitcoin_value, buy_btc
+	get_bitcoin_value, buy_btc, db_answer_to_string
+from helpers.database_handler import db_handler
 from const import const
+
 
 app = Flask(__name__)
 
@@ -38,7 +40,8 @@ def index_page() -> str:
 	"""
 	return '<p> /password - generated password</p><p>/statistic - work from CSV file</p>\
 	<p>/students?amount=3&country=EN&file=Student - list students (store to csv)</p>\
-	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p>'
+	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p>' \
+	'<p>/order-price - get order price for all countrys. /order-price?country=USA - for get order price for USA</p>'
 
 
 @app.route('/password')
@@ -68,8 +71,8 @@ def average_statistic():
 @app.route('/students')
 @use_kwargs(
 	{
-		'amount': fields.Int(missing=1, validate=[validate.Range(min=1, max=1000)]),
-		'country': fields.Str(missing='UK', validate=[validate.Length(2)]),
+		'amount': fields.Int(load_default=1, validate=[validate.Range(min=1, max=1000)]),
+		'country': fields.Str(load_default='UK', validate=[validate.Length(2)]),
 		'file': fields.Str(required=True, validate=[validate.Length(max=12), validate.Regexp('^\w+$')])
 	},
 	location='query'
@@ -114,6 +117,76 @@ def bitcoin_exchange(currency: str, change: int):
 		exchange_finally_sum = buy_btc(rate_dict=bitcoin_rate_dict, summ=change)
 	return f'<p>Exchange rate:<br> 1 BTC = {bitcoin_rate_dict["symbol"]}{bitcoin_rate_dict["rate"]}  [{currency}]</p>\
 	<p>{str(f"Exchange: {change} {currency} = {exchange_finally_sum} BTC") if change else str("For exchange use parameter change=100")}</p>'
+
+
+@app.route('/order-price')
+@use_kwargs(
+	{
+	'country': fields.Str(missing=None, validate=[validate.Length(min=3, max=20)])
+	},
+	location='query'
+	)
+def order_price(country):
+	fields_query = {}
+	if country:
+		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices'
+		fields_query['BillingCountry'] = country
+		if fields_query:
+			query +=' WHERE ' + ' AND '.join(f'{key}=?' for key in fields_query.keys())
+	else:
+		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices GROUP BY BillingCountry'
+	result_from_base = db_handler(query, args=tuple(fields_query.values()))
+	print(result_from_base)
+	if result_from_base == [(None, None)]:
+		return 'Country not Found'
+	out_str = db_answer_to_string(result_from_base, ['Country', 'Total'])
+	return out_str
+
+@app.route('/track-info')
+@use_kwargs(
+	{
+	'trackid': fields.Int(required=True, validate=[validate.Range(min=1, max=100000)])
+	},
+	location='query'
+	)
+def get_all_info_about_track(trackid):
+	fields_query = {}
+	query = f'SELECT artists.Name AS Artist,\
+					tracks.Name AS Track, \
+					strftime("%M:%S", tracks.Milliseconds/1000, "unixepoch") as Lenght, \
+					albums.Title AS Album, \
+					tracks.Composer AS Composer, \
+					genres.Name AS Genres, \
+					tracks.Bytes AS Bytes, \
+					media_types.Name AS "Media types", \
+					tracks.UnitPrice AS Price, \
+					sum(invoice_items.Quantity) AS "Quantity", \
+					(invoice_items.UnitPrice * sum(invoice_items.Quantity)) AS "Total Money" \
+			FROM tracks JOIN albums JOIN artists JOIN genres JOIN invoice_items JOIN media_types \
+			WHERE tracks.TrackId={trackid} \
+				AND invoice_items.TrackId=tracks.TrackId \
+				AND tracks.AlbumId = albums.AlbumId \
+				AND albums.ArtistId = artists.ArtistId \
+				AND tracks.GenreId = genres.GenreId \
+				AND tracks.MediaTypeId = media_types.MediaTypeId'
+	result_from_base = db_handler(query)
+	print(result_from_base)
+	out_str = db_answer_to_string(result_from_base, ['Artist', ' Title', 'Lenght', 'Album', 'Composer',
+													 'Genre', 'Bytes', 'Media format', 'Price', 'Quantity sale',
+													 'Total price'])
+
+    # join all possible tables and show all possible info about all tracks
+    # as input track ID
+	return out_str
+
+
+def get_all_info_about_track():
+    # *
+    # show time of all tracks of all albums in hours
+    # use info about all tracks
+    return get_all_info_about_track
+
+
 
 
 if __name__ == '__main__':

@@ -9,7 +9,22 @@ from faker import Faker
 from http import HTTPStatus
 from flask import Response
 
-from python_lesson.const import const
+from const import const
+
+
+def db_answer_to_string(input_list: list, headers: list) -> str:
+	out_string = '<table border="1" cellpadding="5" cellspacing="0">'
+	out_string += '<tr>'
+	for header in headers:
+		out_string += f'<td align="center"><strong>{header}</strong></td>'
+	out_string += '</tr>'
+	for el in input_list:
+		out_string += '<tr>'
+		for field in el:
+			out_string += f'<td>{field}</td>'
+		out_string += '</tr>'
+	out_string += '</table>'
+	return out_string
 
 def object_to_str(students_object: list) -> str:
 	"""
