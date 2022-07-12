@@ -7,7 +7,7 @@ from webargs.flaskparser import use_kwargs
 from flask import Flask, request, jsonify
 
 from helpers.helpers import password_generator, get_statistic_from_csv, persons_generator, object_to_csv, object_to_str, \
-	get_bitcoin_value, buy_btc, db_answer_to_string, paramaters_to_db_rules
+	get_bitcoin_value, buy_btc, db_answer_to_string, paramaters_to_db_condition
 from helpers.database_handler import db_handler
 from const import const
 
@@ -58,7 +58,7 @@ def generate_password() -> str:
 
 
 @app.route('/statistic')
-def average_statistic():
+def average_statistic() -> str:
 	"""
 	Entry point for route /statistic
 	(Reading from csv and calculating average)
@@ -78,7 +78,7 @@ def average_statistic():
 	},
 	location='query'
 )
-def generate_students(amount: int, country: str, file: str):
+def generate_students(amount: int, country: str, file: str) -> str:
 	"""
 	Entry point for /students with parameters
 	(Adding functionality generating students, save data to file and  output on client by formatted HTML string)
@@ -101,7 +101,7 @@ def generate_students(amount: int, country: str, file: str):
 	},
 	location='query'
 )
-def bitcoin_exchange(currency: str, change: int):
+def bitcoin_exchange(currency: str, change: int) -> str:
 	"""
 	Entry point for /bitcoin_rate with parameters
 	(Get bitcoin rate and exchange calculation user currency to BTC)
@@ -127,12 +127,19 @@ def bitcoin_exchange(currency: str, change: int):
 	},
 	location='query'
 )
-def order_price(country):
+def order_price(country: str) -> str:
+	"""
+	Entry point for /order-price
+	Without parameter get order price by countries.
+	With parameter 'country=' - get order price for country
+	:param country: str - country-code
+	:return: str
+	"""
 	fields_query = {}
 	if country:
 		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices'
 		fields_query['BillingCountry'] = country
-		query += paramaters_to_db_rules(fields_query)
+		query += paramaters_to_db_condition(fields_query)
 	else:
 		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices GROUP BY BillingCountry'
 	result_from_base = db_handler(query, args=tuple(fields_query.values()))
@@ -147,7 +154,13 @@ def order_price(country):
 	},
 	location='query'
 )
-def get_all_info_about_track(trackId):
+def get_all_info_about_track(trackId: int) -> str:
+	"""
+		Entry point for /track-info
+		Accepts input parameter 'trackId=' with track id and get all information about track
+		:param trackId: int - id of track
+		:return: str
+		"""
 	fields_query = {}
 	query = 'SELECT artists.Name AS Artist,\
 		   tracks.Name AS Track,\
@@ -166,7 +179,7 @@ def get_all_info_about_track(trackId):
 		LEFT JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId\
 		LEFT JOIN invoice_items ON tracks.TrackId = invoice_items.TrackId'
 	fields_query['tracks.TrackId'] = trackId
-	query += paramaters_to_db_rules(fields_query)
+	query += paramaters_to_db_condition(fields_query)
 	result_from_base = db_handler(query, args=tuple(fields_query.values()))
 	out_str = db_answer_to_string(result_from_base, ['Artist', ' Title', 'Lenght', 'Album', 'Composer',
 													 'Genre', 'Bytes', 'Media format', 'Price', 'Quantity',
@@ -175,7 +188,12 @@ def get_all_info_about_track(trackId):
 
 
 @app.route('/full-time')
-def get_all_time_about_track():
+def get_all_time_about_track() -> str:
+	"""
+	Entry point for /full-time
+	Get time for all track in table 'tracks'
+	:return: str
+	"""
 	query = 'SELECT	strftime("%H:%M:%S", sum(tracks.Milliseconds) / 1000, "unixepoch") as Lenght\
 	FROM tracks'
 	result_from_base = db_handler(query)

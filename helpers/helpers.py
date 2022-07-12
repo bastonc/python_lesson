@@ -140,7 +140,7 @@ def buy_btc(rate_dict: dict, summ: int):
 	exchange = summ / rate_dict['rate']
 	return round(exchange, 4)
 
-def paramaters_to_db_rules(parameters: dict) -> str:
+def paramaters_to_db_condition(parameters: dict) -> str:
 	db_rules_on_query = ''  # if not have parameters return empty string
 	if parameters:
 		db_rules_on_query = ' WHERE ' + ' AND '.join(f'{key}=?' for key in parameters.keys())
