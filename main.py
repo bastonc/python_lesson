@@ -7,10 +7,9 @@ from webargs.flaskparser import use_kwargs
 from flask import Flask, request, jsonify
 
 from helpers.helpers import password_generator, get_statistic_from_csv, persons_generator, object_to_csv, object_to_str, \
-	get_bitcoin_value, buy_btc, db_answer_to_string
+	get_bitcoin_value, buy_btc, db_answer_to_string, paramaters_to_db_rules
 from helpers.database_handler import db_handler
 from const import const
-
 
 app = Flask(__name__)
 
@@ -40,8 +39,10 @@ def index_page() -> str:
 	"""
 	return '<p> /password - generated password</p><p>/statistic - work from CSV file</p>\
 	<p>/students?amount=3&country=EN&file=Student - list students (store to csv)</p>\
-	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p>' \
-	'<p>/order-price - get order price for all countrys. /order-price?country=USA - for get order price for USA</p>'
+	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p> \
+	<p>/order-price - get order price for all countries. /order-price?country=USA - for get order price for USA</p>\
+	<p>/track-info?trackId=22 - get information about trackId </p> \
+	<p> /full-time - get full time for all track'
 
 
 @app.route('/password')
@@ -122,71 +123,64 @@ def bitcoin_exchange(currency: str, change: int):
 @app.route('/order-price')
 @use_kwargs(
 	{
-	'country': fields.Str(missing=None, validate=[validate.Length(min=3, max=20)])
+		'country': fields.Str(missing=None, validate=[validate.Length(min=3, max=20)])
 	},
 	location='query'
-	)
+)
 def order_price(country):
 	fields_query = {}
 	if country:
 		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices'
 		fields_query['BillingCountry'] = country
-		if fields_query:
-			query +=' WHERE ' + ' AND '.join(f'{key}=?' for key in fields_query.keys())
+		query += paramaters_to_db_rules(fields_query)
 	else:
 		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices GROUP BY BillingCountry'
 	result_from_base = db_handler(query, args=tuple(fields_query.values()))
-	print(result_from_base)
-	if result_from_base == [(None, None)]:
-		return 'Country not Found'
 	out_str = db_answer_to_string(result_from_base, ['Country', 'Total'])
 	return out_str
+
 
 @app.route('/track-info')
 @use_kwargs(
 	{
-	'trackid': fields.Int(required=True, validate=[validate.Range(min=1, max=100000)])
+		'trackId': fields.Int(required=True, validate=[validate.Range(min=1, max=100000)])
 	},
 	location='query'
-	)
-def get_all_info_about_track(trackid):
+)
+def get_all_info_about_track(trackId):
 	fields_query = {}
-	query = f'SELECT artists.Name AS Artist,\
-					tracks.Name AS Track, \
-					strftime("%M:%S", tracks.Milliseconds/1000, "unixepoch") as Lenght, \
-					albums.Title AS Album, \
-					tracks.Composer AS Composer, \
-					genres.Name AS Genres, \
-					tracks.Bytes AS Bytes, \
-					media_types.Name AS "Media types", \
-					tracks.UnitPrice AS Price, \
-					sum(invoice_items.Quantity) AS "Quantity", \
-					(invoice_items.UnitPrice * sum(invoice_items.Quantity)) AS "Total Money" \
-			FROM tracks JOIN albums JOIN artists JOIN genres JOIN invoice_items JOIN media_types \
-			WHERE tracks.TrackId={trackid} \
-				AND invoice_items.TrackId=tracks.TrackId \
-				AND tracks.AlbumId = albums.AlbumId \
-				AND albums.ArtistId = artists.ArtistId \
-				AND tracks.GenreId = genres.GenreId \
-				AND tracks.MediaTypeId = media_types.MediaTypeId'
-	result_from_base = db_handler(query)
-	print(result_from_base)
+	query = 'SELECT artists.Name AS Artist,\
+		   tracks.Name AS Track,\
+		   strftime("%M:%S", tracks.Milliseconds/1000, "unixepoch") as Lenght,\
+		   albums.Title AS Album,\
+		   tracks.Composer AS Composer,\
+		   genres.Name AS Genres,\
+		   tracks.Bytes AS Bytes,\
+		   media_types.Name AS "Media types",\
+		   tracks.UnitPrice AS Price,\
+		   SUM(invoice_items.Quantity) AS Quantity,\
+		   tracks.UnitPrice  * sum(invoice_items.Quantity)\
+		FROM tracks LEFT JOIN albums ON tracks.AlbumId = albums.AlbumId\
+		LEFT JOIN artists ON albums.ArtistId = artists.ArtistId\
+		LEFT JOIN genres ON tracks.GenreId = genres.GenreId\
+		LEFT JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId\
+		LEFT JOIN invoice_items ON tracks.TrackId = invoice_items.TrackId'
+	fields_query['tracks.TrackId'] = trackId
+	query += paramaters_to_db_rules(fields_query)
+	result_from_base = db_handler(query, args=tuple(fields_query.values()))
 	out_str = db_answer_to_string(result_from_base, ['Artist', ' Title', 'Lenght', 'Album', 'Composer',
-													 'Genre', 'Bytes', 'Media format', 'Price', 'Quantity sale',
-													 'Total price'])
-
-    # join all possible tables and show all possible info about all tracks
-    # as input track ID
+													 'Genre', 'Bytes', 'Media format', 'Price', 'Quantity',
+													 'Total'])
 	return out_str
 
 
-def get_all_info_about_track():
-    # *
-    # show time of all tracks of all albums in hours
-    # use info about all tracks
-    return get_all_info_about_track
-
-
+@app.route('/full-time')
+def get_all_time_about_track():
+	query = 'SELECT	strftime("%H:%M:%S", sum(tracks.Milliseconds) / 1000, "unixepoch") as Lenght\
+	FROM tracks'
+	result_from_base = db_handler(query)
+	out_str = db_answer_to_string(result_from_base, ['Total time for All tracks <br> (H:M:S)'])
+	return out_str
 
 
 if __name__ == '__main__':

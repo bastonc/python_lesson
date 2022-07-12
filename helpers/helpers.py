@@ -21,7 +21,7 @@ def db_answer_to_string(input_list: list, headers: list) -> str:
 	for el in input_list:
 		out_string += '<tr>'
 		for field in el:
-			out_string += f'<td>{field}</td>'
+			out_string += f'<td>{field if field is not None else " - "}</td>'
 		out_string += '</tr>'
 	out_string += '</table>'
 	return out_string
@@ -139,3 +139,9 @@ def buy_btc(rate_dict: dict, summ: int):
 	"""
 	exchange = summ / rate_dict['rate']
 	return round(exchange, 4)
+
+def paramaters_to_db_rules(parameters: dict) -> str:
+	db_rules_on_query = ''  # if not have parameters return empty string
+	if parameters:
+		db_rules_on_query = ' WHERE ' + ' AND '.join(f'{key}=?' for key in parameters.keys())
+	return db_rules_on_query
