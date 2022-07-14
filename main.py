@@ -1,5 +1,6 @@
 import random
 
+
 from http import HTTPStatus
 
 from webargs import fields, validate
@@ -9,6 +10,10 @@ from flask import Flask, request, jsonify
 from helpers.helpers import password_generator, get_statistic_from_csv, persons_generator, object_to_csv, object_to_str, \
 	get_bitcoin_value, buy_btc, db_answer_to_string, paramaters_to_db_condition
 from helpers.database_handler import db_handler
+from helpers import query
+from point import Point
+from circle import Circle
+
 from const import const
 
 app = Flask(__name__)
@@ -42,7 +47,8 @@ def index_page() -> str:
 	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p> \
 	<p>/order-price - get order price for all countries. /order-price?country=USA - for get order price for USA</p>\
 	<p>/track-info?trackId=22 - get information about trackId </p> \
-	<p> /full-time - get full time for all track'
+	<p> /full-time - get full time for all track  \
+	<p> /circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16 - Point into circle'
 
 
 @app.route('/password')
@@ -137,12 +143,12 @@ def order_price(country: str) -> str:
 	"""
 	fields_query = {}
 	if country:
-		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices'
+		query_str = query.get_total_sale()
 		fields_query['BillingCountry'] = country
-		query += paramaters_to_db_condition(fields_query)
+		query_str += paramaters_to_db_condition(fields_query)
 	else:
-		query = 'SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices GROUP BY BillingCountry'
-	result_from_base = db_handler(query, args=tuple(fields_query.values()))
+		query_str = query.get_total_sale() + 'GROUP BY BillingCountry'
+	result_from_base = db_handler(query_str, args=tuple(fields_query.values()))
 	out_str = db_answer_to_string(result_from_base, ['Country', 'Total'])
 	return out_str
 
@@ -162,25 +168,10 @@ def get_all_info_about_track(trackId: int) -> str:
 		:return: str
 		"""
 	fields_query = {}
-	query = 'SELECT artists.Name AS Artist,\
-		   tracks.Name AS Track,\
-		   strftime("%M:%S", tracks.Milliseconds/1000, "unixepoch") as Lenght,\
-		   albums.Title AS Album,\
-		   tracks.Composer AS Composer,\
-		   genres.Name AS Genres,\
-		   tracks.Bytes AS Bytes,\
-		   media_types.Name AS "Media types",\
-		   tracks.UnitPrice AS Price,\
-		   SUM(invoice_items.Quantity) AS Quantity,\
-		   tracks.UnitPrice  * sum(invoice_items.Quantity)\
-		FROM tracks LEFT JOIN albums ON tracks.AlbumId = albums.AlbumId\
-		LEFT JOIN artists ON albums.ArtistId = artists.ArtistId\
-		LEFT JOIN genres ON tracks.GenreId = genres.GenreId\
-		LEFT JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId\
-		LEFT JOIN invoice_items ON tracks.TrackId = invoice_items.TrackId'
+	query_str = query.get_full_info_track()
 	fields_query['tracks.TrackId'] = trackId
-	query += paramaters_to_db_condition(fields_query)
-	result_from_base = db_handler(query, args=tuple(fields_query.values()))
+	query_str += paramaters_to_db_condition(fields_query)
+	result_from_base = db_handler(query_str, args=tuple(fields_query.values()))
 	out_str = db_answer_to_string(result_from_base, ['Artist', ' Title', 'Lenght', 'Album', 'Composer',
 													 'Genre', 'Bytes', 'Media format', 'Price', 'Quantity',
 													 'Total'])
@@ -194,11 +185,38 @@ def get_all_time_about_track() -> str:
 	Get time for all track in table 'tracks'
 	:return: str
 	"""
-	query = 'SELECT	strftime("%H:%M:%S", sum(tracks.Milliseconds) / 1000, "unixepoch") as Lenght\
-	FROM tracks'
-	result_from_base = db_handler(query)
+	query_str = query.get_time_all_tracks()
+	result_from_base = db_handler(query_str)
 	out_str = db_answer_to_string(result_from_base, ['Total time for All tracks <br> (H:M:S)'])
 	return out_str
+
+@app.route('/circle')
+@use_kwargs(
+	{
+		'circle_x': fields.Int(required=True, validate=[validate.Range(min=1, max=10000)]),
+		'circle_y': fields.Int(required=True, validate=[validate.Range(min=1, max=10000)]),
+		'radius': fields.Int(required=True, validate=[validate.Range(min=1, max=10000)]),
+		'point_x': fields.Int(required=True, validate=[validate.Range(min=1, max=10000)]),
+		'point_y': fields.Int(required=True, validate=[validate.Range(min=1, max=10000)]),
+	},
+	location='query'
+)
+def get_point_in_circle(circle_x: int, circle_y: int, radius: int, point_x: int, point_y: int) -> str:
+	"""
+	Entry point for /circle
+	Check the point in circle range or not
+	:param circle_x: int - coordinate x for circle
+	:param circle_y: int - coordinate x for circle
+	:param radius: int - radius for circle
+	:param point_x: int - coordinate x for point
+	:param point_y: int - coordinate y for point
+	:return: str
+	"""
+	point = Point()
+	point.x = point_x
+	point.y = point_y
+	circle = Circle(circle_x, circle_y, radius)
+	return str(circle.contains(point))
 
 
 if __name__ == '__main__':
