@@ -1,6 +1,5 @@
 import random
 
-
 from http import HTTPStatus
 
 from webargs import fields, validate
@@ -42,13 +41,17 @@ def index_page() -> str:
 	(Index page)
 	:return:
 	"""
-	return '<p> /password - generated password</p><p>/statistic - work from CSV file</p>\
-	<p>/students?amount=3&country=EN&file=Student - list students (store to csv)</p>\
-	<p>/bitcoin_rate?currency=USD&change=100 - course and exchange BTC</p> \
-	<p>/order-price - get order price for all countries. /order-price?country=USA - for get order price for USA</p>\
-	<p>/track-info?trackId=22 - get information about trackId </p> \
-	<p> /full-time - get full time for all track  \
-	<p> /circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16 - Point into circle'
+	return '<p> <a href = "/password">/password</a> - generated password</p><p>/statistic - work from CSV file</p>\
+	<p><a href = "/students?amount=3&country=EN&file=Student">/students?amount=3&country=EN&file=Student</a> \
+	- list students (store to csv)</p>\
+	<p><a href = "/bitcoin_rate?currency=USD&change=100">/bitcoin_rate?currency=USD&change=100</a> - course and exchange BTC</p> \
+	<p><a href = "/order-price">/order-price</a> - get order price for all countries. \
+	 <a href = "/order-price?country=USA">/order-price?country=USA</a> - for get order price for USA</p>\
+	<p> <a href = "/track-info?trackId=22">/track-info?trackId=22</a> - get information about trackId </p> \
+	<p> <a href = "/full-time">/full-time</a>- get full time for all track </p>  \
+	<p> <a href = "/circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16">\
+	/circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16</a> - Point into circle </p> \
+	<p><a href = "/genre?name=Rock">/genre?name=Rock</a> - get popular city for genre</p>'
 
 
 @app.route('/password')
@@ -149,8 +152,7 @@ def order_price(country: str) -> str:
 	else:
 		query_str = query.get_total_sale() + 'GROUP BY BillingCountry'
 	result_from_base = db_handler(query_str, args=tuple(fields_query.values()))
-	out_str = db_answer_to_string(result_from_base, ['Country', 'Total'])
-	return out_str
+	return db_answer_to_string(result_from_base, ['Country', 'Total'])
 
 
 @app.route('/track-info')
@@ -172,10 +174,9 @@ def get_all_info_about_track(trackId: int) -> str:
 	fields_query['tracks.TrackId'] = trackId
 	query_str += paramaters_to_db_condition(fields_query)
 	result_from_base = db_handler(query_str, args=tuple(fields_query.values()))
-	out_str = db_answer_to_string(result_from_base, ['Artist', ' Title', 'Lenght', 'Album', 'Composer',
-													 'Genre', 'Bytes', 'Media format', 'Price', 'Quantity',
-													 'Total'])
-	return out_str
+	return db_answer_to_string(result_from_base, ['Artist', ' Title', 'Lenght', 'Album', 'Composer',
+												  'Genre', 'Bytes', 'Media format', 'Price', 'Quantity',
+												  'Total'])
 
 
 @app.route('/full-time')
@@ -187,8 +188,8 @@ def get_all_time_about_track() -> str:
 	"""
 	query_str = query.get_time_all_tracks()
 	result_from_base = db_handler(query_str)
-	out_str = db_answer_to_string(result_from_base, ['Total time for All tracks <br> (H:M:S)'])
-	return out_str
+	return db_answer_to_string(result_from_base, ['Total time for All tracks <br> (H:M:S)'])
+
 
 @app.route('/circle')
 @use_kwargs(
@@ -217,6 +218,21 @@ def get_point_in_circle(circle_x: int, circle_y: int, radius: int, point_x: int,
 	point.y = point_y
 	circle = Circle(circle_x, circle_y, radius)
 	return str(circle.contains(point))
+
+
+@app.route('/genre')
+@use_kwargs(
+	{
+		'name': fields.Str(required=True, validate=[validate.Length(max=20)])
+	},
+	location='query'
+)
+def get_city_for_genre(name: str) -> str:
+	query_str = query.get_city_popular_genre()
+	result_from_base = db_handler(query_str, args=([name]))
+	if not result_from_base:
+		return "Not Found sales for genre"
+	return db_answer_to_string(result_from_base, ['Genre', 'City', 'Sales'])
 
 
 if __name__ == '__main__':
