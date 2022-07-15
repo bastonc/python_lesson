@@ -1,5 +1,5 @@
 def get_full_info_track():
-	return """
+    return """
            SELECT artists.Name AS Artist,
               tracks.Name AS Track,
               strftime("%M:%S", tracks.Milliseconds/1000, "unixepoch") as Lenght,
@@ -20,23 +20,23 @@ def get_full_info_track():
 
 
 def get_time_all_tracks():
-	return """ SELECT	strftime("%H:%M:%S", sum(tracks.Milliseconds) / 1000, "unixepoch") as Lenght
-			   FROM tracks 
-		"""
+    return """ SELECT	strftime("%H:%M:%S", sum(tracks.Milliseconds) / 1000, "unixepoch") as Lenght
+            FROM tracks 
+        """
 
 
 def get_total_sale():
-	return """ SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices
-		"""
+    return """ SELECT BillingCountry, ROUND(SUM(Total), 2) FROM invoices
+        """
+
 
 def get_city_popular_genre():
-	return """ SELECT  g.Name, i.BillingCity, COUNT(*) AS Result
-				FROM tracks
-				JOIN genres g on tracks.GenreId = g.GenreId
-				JOIN invoice_items ii on tracks.GenreId = ii.TrackId
-				JOIN invoices i on ii.InvoiceId = i.InvoiceId
-				GROUP BY i.BillingCity, g.Name
-				HAVING  g.Name == ?
-				ORDER BY Result LIMIT 1;
-	
-	"""
+    return """ SELECT  g.Name, i.BillingCity, COUNT(*) AS Result
+                FROM tracks
+                JOIN genres g on tracks.GenreId = g.GenreId
+                JOIN invoice_items ii on tracks.GenreId = ii.TrackId
+                JOIN invoices i on ii.InvoiceId = i.InvoiceId
+                GROUP BY i.BillingCity, g.Name
+                HAVING  g.Name == ?
+                ORDER BY Result LIMIT 1;
+        """
