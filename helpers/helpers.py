@@ -7,8 +7,6 @@ import pandas as pd
 from faker import Faker
 from http import HTTPStatus
 
-from const import const
-
 
 def db_answer_to_string(input_list: list, headers: list) -> str:
     out_string = '<table border="1" cellpadding="5" cellspacing="0">'

@@ -2,7 +2,6 @@ import sqlite3
 
 
 def db_handler(query, args=()):
-    # print(query)
     connect = sqlite3.connect('chinook.db')
     cursor = connect.cursor()
     cursor.execute(query, args)
