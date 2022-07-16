@@ -1,3 +1,5 @@
+from decimal import *
+from helpers.colorize import Colorize
 
 def db_answer_to_string(input_list: list, headers: list) -> str:
     out_string = '<table border="1" cellpadding="5" cellspacing="0">'
@@ -19,3 +21,21 @@ def paramaters_to_db_condition(parameters: dict) -> str:
     if parameters:
         db_rules_on_query = ' WHERE ' + ' AND '.join(f'{key}=?' for key in parameters.keys())
     return db_rules_on_query
+
+
+def frange(start=0, stop=0, step=1):
+    result = float(start)
+    if float(start) > float(stop) and float(step) < 0:
+        while result > float(stop):
+            yield result
+            result += float(step)
+    else:
+        while result < float(stop):
+            yield result
+            result += abs(float(step))
+
+
+def colorize(color, text):
+    with Colorize(color):
+        print(f'Output inside context manager: {text}')
+    print(f'Output outside context manager: {text}')
