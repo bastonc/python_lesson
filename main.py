@@ -78,6 +78,12 @@ def get_point_in_circle(circle_x: int, circle_y: int, radius: int, point_x: int,
     location='query'
 )
 def get_city_for_genre(name: str) -> str:
+    """
+    Entry point for /genre
+    Found city with maximum sale quantity for genre
+    :param name: genre name
+    :return: str
+    """
     query_str = query.get_city_popular_genre()
     result_from_base = db_handler(query_str, args=([name]))
     if not result_from_base:
@@ -94,7 +100,15 @@ def get_city_for_genre(name: str) -> str:
     },
     location='query'
 )
-def frange_entry(start, stop, step):
+def frange_entry(start: str, stop: str, step: str) -> str:
+    """
+    Entry point for /range-float
+    Realization frange
+    :param start: start-position for frange
+    :param stop: stop-position for frange
+    :param step: step for frange
+    :return: str
+    """
     return f'{[round(el, 2) for el in frange(start, stop, step)]}'
 
 
@@ -106,13 +120,25 @@ def frange_entry(start, stop, step):
     },
     location='query'
 )
-def colorize_context_manager(color, text):
+def colorize_context_manager(color: str, text: str) -> str:
+    """
+    Entry point for /context-manager
+    Output text into console with context-manager and without it
+    :param color: name color from 'gray', 'red', 'green', 'yellow', 'blue', 'pink', 'turquoise'
+    :param text: text for output
+    :return:
+    """
     colorize(color, text)
     return "Please see output in terminal"
 
 
 @app.route('/shapes')
-def shapes_square():
+def shapes_square() -> str:
+    """
+    Entry point /shapes
+    Create many shapes from shapes.py and calculate square
+    :return: str
+    """
     rectangle = Rectangle(0, 0, 10, 20)
     rectangle1 = Rectangle(10, 0, -10, 20)
     rectangle2 = Rectangle(0, 20, 100, 20)

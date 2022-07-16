@@ -1,4 +1,4 @@
-from decimal import *
+
 from helpers.colorize import Colorize
 
 def db_answer_to_string(input_list: list, headers: list) -> str:

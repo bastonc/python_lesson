@@ -1,5 +1,3 @@
-from point import Point
-
 
 class Circle:
     def __init__(self, x: int, y: int, radius: int):
