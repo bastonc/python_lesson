@@ -42,7 +42,8 @@ def index_page() -> str:
     /range-float?start=10&stop=2&step=-2/a> - out range float </p> \
     <p><a href = "/context-manager?color=green&text=test">/context-manager?color=green&text=test</a> - colorize output in terminal</p> \
     <p><a href = "/circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16">/circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16</a> \
-    /circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16 - Entry point in circle</p>'
+    /circle?circle_x=10&circle_y=10&radius=6&point_x=16&point_y=16 - Entry point in circle</p> \
+    <p><a href="/shapes">/shapes</a> - create shapes and calculate square</p>'
 
 
 @app.route('/circle')
@@ -147,6 +148,7 @@ def shapes_square() -> str:
     paralelogramm = Parallelogram(1, 2, 20, 30, 45)
     paralelogramm1 = Parallelogram(1, 2, 20, 30, 45)
     triangle = Triangle(0, 0, 5)
+    print(triangle.square())
     triangle2 = Triangle(0, 0, 3)
     scene = Scene()
     scene.add_figure(rectangle)

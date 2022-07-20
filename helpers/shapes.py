@@ -60,9 +60,8 @@ class Triangle(Shape):
 
     def square(self):
         p = (self.long_edge * 3) / 2
-        s1 = math.sqrt(p * (p - self.long_edge) * (p - self.long_edge) * (p - self.long_edge))
-        s2 = math.sqrt(p * (p - self.long_edge) ** 3)
-        return s1
+        square = math.sqrt(p * (p - self.long_edge) ** 3)
+        return square
 
 
 class Scene:

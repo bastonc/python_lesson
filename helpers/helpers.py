@@ -1,6 +1,7 @@
 
 from helpers.colorize import Colorize
 
+
 def db_answer_to_string(input_list: list, headers: list) -> str:
     out_string = '<table border="1" cellpadding="5" cellspacing="0">'
     out_string += '<tr>'
@@ -23,16 +24,11 @@ def paramaters_to_db_condition(parameters: dict) -> str:
     return db_rules_on_query
 
 
-def frange(start=0, stop=0, step=1):
+def frange(start=0, stop=0, step=1) -> float:
     result = float(start)
-    if float(start) > float(stop) and float(step) < 0:
-        while result > float(stop):
-            yield result
-            result += float(step)
-    else:
-        while result < float(stop):
-            yield result
-            result += abs(float(step))
+    while (result > float(stop)) if float(step) < 0 else (result < float(stop)) and float(step) != 0:
+        yield result
+        result += float(step)
 
 
 def colorize(color, text):
