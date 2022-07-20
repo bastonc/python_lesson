@@ -4,11 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "*"
-pandas = "*"
-faker = "*"
-webargs = "*"
-requests = "*"
 
 [dev-packages]
 
