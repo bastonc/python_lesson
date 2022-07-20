@@ -4,7 +4,7 @@ from helpers.person import Person
 
 class Teacher(Person, TeacherPermission):
 
-    def __init__(self, program_lang, first_name, last_name, age, group=None, message='', db='students.db'):
+    def __init__(self, program_lang, first_name, last_name, age, group=None, message='', db='lms.db'):
         super().__init__(first_name=first_name, last_name=last_name, age=age)
         self.program_lang = program_lang
         self.message = message

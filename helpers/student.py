@@ -5,7 +5,7 @@ from helpers.db_handler import db_handler
 
 class Student(Person, StudentPermission):
 
-    def __init__(self, program_lang, first_name, last_name, age, group, message='', db='students.db'):
+    def __init__(self, program_lang, first_name, last_name, age, group, message='', db='lms.db'):
         super().__init__(first_name=first_name, last_name=last_name, age=age)
         self.last_name = last_name
         self.program_lang = program_lang
