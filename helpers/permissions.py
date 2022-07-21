@@ -9,8 +9,6 @@ class TeacherPermission:
 
 
 class StudentPermission:
-    def __init__(self, student_id):
-        self.student_id = student_id
 
     def readiness_homework(self, hw_id: int) -> None:
         print(self.student_info)
