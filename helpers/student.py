@@ -12,23 +12,21 @@ class Student(Person, StudentPermission):
         self.group = group
         self.message = message
         self.db = db
-        if not self.initialization_student():
+        self.student_info = self.initialization_student()
+        if not self.student_info:
             print("create student")
             self._create_student()
         self.student_id = self.student_info[0][0]
 
     def initialization_student(self):
         query = f'SELECT * FROM students WHERE `first_name`="{self.first_name}" AND `last_name`="{self.last_name}" AND `age`="{self.age}" AND `group_name`="{self.group}"'
-        self.student_info = db_handler(db=self.db, query=query)
-        return self.student_info
-
+        return db_handler(db=self.db, query=query)
 
     def get_group(self):
         return self.group
 
     def get_id(self):
         return self.student_id
-
 
     def _create_student(self):
         query = f'INSERT INTO students (`first_name`, `last_name`, `age`, `group_name`, `language`) \
@@ -37,4 +35,4 @@ class Student(Person, StudentPermission):
         self.initialization_student()
 
     def __str__(self):
-        return '{self.message} Teacher {self.name} age: {self.age} - programm laguage {self.program_lang}, group(s) {[group for group in self.group]}'
+        return f'{self.message} Teacher {self.name} age: {self.age} - programm laguage {self.program_lang}, group(s) {[group for group in self.group]}'
