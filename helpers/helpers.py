@@ -1,6 +1,8 @@
 
 from helpers.colorize import Colorize
 
+from helpers.frange import Frange
+
 
 def db_answer_to_string(input_list: list, headers: list) -> str:
     out_string = '<table border="1" cellpadding="5" cellspacing="0">'
@@ -25,10 +27,15 @@ def paramaters_to_db_condition(parameters: dict) -> str:
 
 
 def frange(start=0, stop=0, step=1) -> float:
-    result = float(start)
-    while (result > float(stop)) if float(step) < 0 else (result < float(stop)) and float(step) != 0:
-        yield result
-        result += float(step)
+    print(start, stop, step)
+    return Frange(start=start, stop=stop, step=step)
+    # iter_list = []
+    # result = float(start)
+    # while (result > float(stop)) if float(step) < 0 else (result < float(stop)) and float(step) != 0:
+    #     result += float(step)
+    #     iter_list.append(result)
+    # return iter(iter_list)
+
 
 
 def colorize(color, text):
