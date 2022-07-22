@@ -26,15 +26,21 @@ def paramaters_to_db_condition(parameters: dict) -> str:
     return db_rules_on_query
 
 
-def frange(start=0, stop=0, step=1) -> float:
-    print(start, stop, step)
+def frange(*args) -> float:
+    if len(args) == 1:
+        start = 0
+        stop = args[0]
+        step = 1
+    if len(args) == 2:
+        start = args[0]
+        stop = args[1]
+        step = 1
+    if len(args) == 3:
+        start = args[0]
+        stop = args[1]
+        step = args[2]
     return Frange(start=start, stop=stop, step=step)
-    # iter_list = []
-    # result = float(start)
-    # while (result > float(stop)) if float(step) < 0 else (result < float(stop)) and float(step) != 0:
-    #     result += float(step)
-    #     iter_list.append(result)
-    # return iter(iter_list)
+
 
 
 
