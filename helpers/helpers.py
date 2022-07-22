@@ -27,15 +27,18 @@ def paramaters_to_db_condition(parameters: dict) -> str:
 
 
 def frange(*args) -> float:
+    if len(args) > 3 or len(args) < 1:
+        print(f'Incorrect amount input parameters {args}')
+        return []
     if len(args) == 1:
         start = 0
         stop = args[0]
         step = 1
-    if len(args) == 2:
+    elif len(args) == 2:
         start = args[0]
         stop = args[1]
         step = 1
-    if len(args) == 3:
+    elif len(args) == 3:
         start = args[0]
         stop = args[1]
         step = args[2]
